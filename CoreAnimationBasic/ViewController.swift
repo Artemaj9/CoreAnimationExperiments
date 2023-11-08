@@ -9,11 +9,12 @@ import UIKit
 
 class ViewController: UIViewController, CAAnimationDelegate {
     
-    lazy var layer: CALayer = {
-        let layer = CALayer()
+    lazy var layer: CAShapeLayer = {
+        let layer = CAShapeLayer()
+        layer.path = UIBezierPath(roundedRect: CGRectMake(0, 0, 100, 100), cornerRadius: 0).cgPath
         layer.frame = CGRectMake(0, 0, 100, 100)
         layer.position = self.view.center
-        layer.backgroundColor = UIColor.red.cgColor
+        layer.fillColor = UIColor.red.cgColor
         return layer
     }()
     
@@ -29,6 +30,19 @@ class ViewController: UIViewController, CAAnimationDelegate {
         
     }
     
+    func trianglePath () -> CGPath {
+        let path = UIBezierPath()
+        let w =  layer.bounds.size.width
+        let h = layer.bounds.size.height
+        
+        path.move(to: CGPoint(x: w/2, y: 0))
+        path.addLine(to: CGPoint(x: w/2, y: 0))
+        path.addLine(to: CGPoint(x: w, y: h))
+        path.addLine(to: CGPoint(x: 0, y: h))
+        path.close()
+        return path.cgPath
+    }
+    
     @objc func tap(sender: UITapGestureRecognizer) {
         // Implicit animation
         /*
@@ -36,7 +50,7 @@ class ViewController: UIViewController, CAAnimationDelegate {
         layer.frame = CGRectMake(10, 10, 80, 80)
         */
         
-        let anim = CABasicAnimation(keyPath: "backgroundColor")
+        let anim = CABasicAnimation(keyPath: "fillColor")
         anim.fromValue = UIColor.darkGray.cgColor
         anim.toValue = UIColor.green.cgColor
         anim.repeatCount = 10
@@ -44,7 +58,7 @@ class ViewController: UIViewController, CAAnimationDelegate {
         anim.autoreverses =  true
         layer.add(anim, forKey: "colorAnimation")
         
-        layer.backgroundColor = (anim.fromValue as! CGColor)
+        layer.fillColor = (anim.fromValue as! CGColor)
         
         let posAnim = CABasicAnimation(keyPath: "position.x")
         posAnim.fromValue = layer.bounds.width / 2
@@ -56,6 +70,15 @@ class ViewController: UIViewController, CAAnimationDelegate {
         posAnim.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
         layer.add(posAnim, forKey: "position.x")
         
+        let pathAnim = CABasicAnimation(keyPath: "path")
+        pathAnim.fromValue = layer.path
+        pathAnim.toValue = trianglePath()
+        //UIBezierPath(ovalIn: layer.bounds).cgPath
+        pathAnim.duration = 4
+        pathAnim.autoreverses = true
+        pathAnim.repeatCount = HUGE
+        layer.add(pathAnim, forKey: "pathAnimation")
+        
         timer = Timer.scheduledTimer(timeInterval: 0.25,
                                      target: self,
                                      selector: #selector(tick),
@@ -64,7 +87,7 @@ class ViewController: UIViewController, CAAnimationDelegate {
     }
     
    @objc func tick() {
-        print("x: \(layer.position.x)")
+       print("x: \(layer.presentation()?.position.x)")
     }
     
     
